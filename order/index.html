@@ -1,0 +1,140 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	<title>Gottwald Order Builder</title>
+	<script src="/static/vue/dist/vue.js"></script>
+	<script src="/static/jquery/dist/jquery.js"></script>
+	<link rel="stylesheet" href="/static/bootstrap/dist/css/bootstrap.min.css"></link>
+	<script src="/static/bootstrap/dist/js/bootstrap.min.js"></script>
+</head>
+
+<body id="app">
+<div class="container-fluid">
+<row>
+	<div class="col-md-8">
+		<table>
+			<tr>
+				<th>Product</th>
+				<th>LP Cost</th>
+				<th>ISK Cost</th>
+				<th>Input Items</th>
+				<th>Isk/LP Ratio</th>
+				<th>Wanted</th>
+			</tr>
+			<tr v-for="item in lpItemList | orderBy 'ratio' -1">
+				<td>{{item.quantity}}x {{item.item.name}}</td>
+				<td>{{item.lpCost}}</td>
+				<td>{{item.iskCost}}</td>
+				<td>
+					<p v-for="input in item.requiredItems">{{input.quantity}}x {{input.item.name}}</p>
+				</td>
+				<td>{{item.ratio | currency '' 2}}</td>
+				<td><input type="number" v-on:change="updateTotals" v-model="item.wanted"></td>
+			</tr>
+		</table>
+
+		<!-- <p>{{ message }}</p>
+		<input v-model="message">
+		<p>Num: {{ num * 2 }}</p>
+		<input type="number" v-model="num"> -->
+	</div>
+	<div class="col-md-4">
+		<button v-on:click="updateTotals">Update</button>
+		input stuff here
+		<table>
+			<tr>
+				<td>Profit</td>
+				<td>{{orderInfo.totalProfit | currency '' 2}}</td>
+			</tr>
+			<tr>
+				<td>LP Used</td>
+				<td>{{orderInfo.totalLP | currency '' 2}}</td>
+			</tr>
+			<tr>
+				<td>Raw ISK cost</td>
+				<td>{{orderInfo.totalIsk | currency '' 2}}</td>
+			</tr>
+			<tr>
+				<td>Output Items</td>
+				<td>Total: {{orderInfo.totalRevenue | currency '' 2}}</td>
+			</tr>
+			<tr v-for="(id, item) in orderInfo.output">
+				<td>{{item.quantity}}x {{item.name}}</td>
+				<td>{{item.total | currency '' 2}}
+			</tr>
+			<tr>
+				<td>Input Items</td>
+				<td>Total: {{orderInfo.inputCost | currency '' 2}}</td>
+			</tr>
+			<tr v-for="(id, item) in orderInfo.input">
+				<td>{{item.quantity}}x {{item.name}}</td>
+				<td>{{item.total | currency '' 2}}
+			</tr>
+		</table>
+		<!-- {{ orderInfo | json 2 }} -->
+	</div>
+</row>
+</div>
+
+<script>
+new Vue({
+	el: '#app',
+	data: {
+		message: 'Name',
+		num : 2,
+		title : [[.Title]],
+		lpItemList : [[.LpItems]],
+		orderInfo : {}
+	},
+	methods: {
+		updateTotals: function() {
+			// this.lpItemList
+			this.orderInfo = {}
+			this.orderInfo.totalLP = 0
+			this.orderInfo.totalIsk = 0
+			this.orderInfo.totalRevenue = 0
+			this.orderInfo.inputCost = 0
+			this.orderInfo.totalProfit = 0
+			this.orderInfo.output = {}
+			this.orderInfo.input = {} //{name, quantity, totalPrice}
+			for (var i = this.lpItemList.length - 1; i >= 0; i--) {
+				var lpItem = this.lpItemList[i]
+				if (lpItem.wanted == 0){
+					continue;
+				}
+				this.orderInfo.totalIsk += lpItem.iskCost * lpItem.wanted
+				this.orderInfo.totalRevenue += lpItem.item.price * lpItem.quantity * lpItem.wanted
+				this.orderInfo.totalLP += lpItem.lpCost * lpItem.wanted
+				var id = lpItem.item.id
+				if (this.orderInfo.output[id]){
+					this.orderInfo.output[id].quantity = this.orderInfo.output[id] + lpItem.quantity * lpItem.wanted
+					this.orderInfo.output[id].total = this.orderInfo[id].quantity * lpItem.item.price
+				}
+				else 
+					this.orderInfo.output[id] = {
+						"name" : lpItem.item.name,
+						"quantity" : lpItem.quantity * lpItem.wanted,
+						"total" : lpItem.item.price * lpItem.quantity * lpItem.wanted
+					}
+				for (var j = lpItem.requiredItems.length - 1; j >= 0; j--) {
+					var req = lpItem.requiredItems[j]
+					console.log("price: " + req.item.price)
+					this.orderInfo.inputCost += req.item.price * req.quantity * lpItem.wanted
+					if(this.orderInfo.input[req.item.id]){
+						this.orderInfo.input[req.item.id].quantity = this.orderInfo.input[req.item.id].quantity + req.quantity*lpItem.wanted
+						this.orderInfo.input[req.item.id].total = this.orderInfo.input[req.item.id].quantity * req.item.price
+					} else {
+						this.orderInfo.input[req.item.id] = {
+							"name" : req.item.name,
+							"quantity" : req.quantity * lpItem.wanted,
+							"total" : req.quantity * req.item.price * lpItem.wanted
+						}
+					}
+				}
+			} //for
+			this.orderInfo.totalProfit = this.orderInfo.totalRevenue - this.orderInfo.totalIsk - this.orderInfo.inputCost
+		}
+	}
+})
+</script>
+</body>

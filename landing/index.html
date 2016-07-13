@@ -1,0 +1,42 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	<title>Gottwald LP Store</title>
+	<script src="/static/vue/dist/vue.js"></script>
+</head>
+
+<body>
+<!-- 
+<p>Uncertain whether you're getting a fair deal using Fuzzworks' LP calculator? Tired of the endless slog through predatory buy and sell orders or boring hauling gauntlets?</p>
+<p>Gottwald and Sons is here to <b>Make Loyalty Points Great Again!</b> (tm)</p>
+
+<h3>How it works</h3>
+<ul>
+<li>We put your buy contract directly into your LP station</li>
+<li>We'll (optionally) deliver inputs directly to your LP station</li>
+<li>We buy at Jita buy prices</li>
+<li>We sell at Jita sell prices</li>
+</ul>
+<h3>IT'S THAT SIMPLE</h3>
+<h1>NOW GET BACK IN THE FIGHT</h1>
+ -->
+<h4>Testing and stuff</h4>
+
+<div id="app">
+<p>{{ message }}</p>
+<input v-model="message">
+<p>Num: {{ num * 2 }}</p>
+<input type="number" v-model="num">
+</div>
+
+<script>
+new Vue({
+	el: '#app',
+	data: {
+		message: 'Hello Gottwald!',
+		num : 2
+	}
+})
+</script>
+
+</body>
